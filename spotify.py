@@ -40,9 +40,8 @@ class SpotifyClient:
                 should have fields "name", "album", and "artist", all of type str.
         """
 
-        playlist_id = self.create_playlist(group["name"])
-        for song in group["songs"]:
-            self.import_song(song, playlist_id)
+        # TODO
+        pass
 
     def import_song(self, song, playlist_id):
         """Imports a song into an existing playlist.
@@ -53,8 +52,8 @@ class SpotifyClient:
             playlist_id (str): A Spotify ID for a playlist.
         """
 
-        song_uri = self.find_song_uri(song)
-        self.add_song_to_playlist(song_uri, playlist_id)
+        # TODO
+        pass
 
     def add_song_to_playlist(self, song_uri, playlist_id):
         """Adds a song to a playlist.
@@ -68,8 +67,8 @@ class SpotifyClient:
             playlist_id (str): A Spotify ID for a playlist
         """
 
-        endpoint = f"/playlists/{playlist_id}/tracks"
-        self._send(endpoint, "POST", params={"uris": song_uri})
+        # TODO
+        pass
 
     def create_playlist(self, name):
         """Creates a playlist.
@@ -85,18 +84,8 @@ class SpotifyClient:
             A str representing a Spotify ID for the new playlist.
         """
 
-        user_id = self.get_current_user()
-        endpoint = f"/users/{user_id}/playlists"
-        headers = self.headers
-        headers.update()
-        response = self._send(
-            endpoint,
-            "POST",
-            extra_headers={"Content-Type": "application/json"},
-            data=json.dumps({"name": name, "public": False})
-        )
-        playlist_id = response.json()["id"]
-        return playlist_id
+        # TODO
+        pass
 
     def find_song_uri(self, song):
         """Finds the Spotify URI for a song
@@ -111,14 +100,8 @@ class SpotifyClient:
             SongNotFoundError: The song cannot be found on Spotify.
         """
 
-        try:
-            tracks = self.search_song(song["name"], artist=song["artist"])
-        except SongNotFoundError:
-            tracks = self.search_song(song["name"], album=song["album"], artist=song["artist"])
-
-        result = tracks[0]
-        uri = result["uri"]
-        return uri
+        # TODO
+        pass
 
     def get_current_user(self):
         """Gets the Spotify ID for the authorized user.
@@ -131,13 +114,8 @@ class SpotifyClient:
             A str representing the Spotify ID of the authorized user.
         """
 
-        if self._user_id:
-            return self._user_id
-        endpoint = "/me"
-        response = self._send(endpoint, "GET")
-        user_id = response.json()["id"]
-        self._user_id = user_id
-        return user_id
+        # TODO
+        pass
 
     def search_song(self, name, album=None, artist=None):
         """Searches for a song.
