@@ -3,6 +3,8 @@
 ```
 # create a Python virtual environment
 python3 -m venv venv
+# activate the virutal environment
+source venv/bin/activate
 # install Python libraries
 pip3 install -r requirements.txt
 # create a configuration file
