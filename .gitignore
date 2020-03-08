@@ -1,0 +1,12 @@
+# Emacs
+*~
+
+# Python
+__pycache__/
+venv/
+
+# Configuration
+conf.ini
+
+# Application
+auth_cache
