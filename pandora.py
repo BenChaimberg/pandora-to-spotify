@@ -1,5 +1,9 @@
 """All things related to Pandora"""
+import math
 import requests
+
+class AuthorizationError(Exception):
+    """Exception raised when request fails due to lack of authorization."""
 
 
 class PandoraClient:
@@ -84,13 +88,24 @@ class PandoraClient:
             A list of dicts representing feedbacks (format is everything under the "feedback" key
             in the spec for the API response, above.
         """
-
+        page_size = 10
         endpoint = "/station/getStationFeedback"
-        feedback_response = self._send(endpoint, "POST", {
+        base_request = {
             "stationId": station_id,
-            "positive": positive
-        })
-        feedback = feedback_response.json()["feedback"]
+            "positive": positive,
+            "pageSize": page_size
+        }
+
+        size_request = base_request.copy()
+        size_request["pageSize"] = 1
+        total_feedbacks = self._send(endpoint, "POST", size_request).json()["total"]
+
+        feedback = []
+        for i in range(math.ceil(total_feedbacks / page_size)):
+            feedback_request = base_request.copy()
+            feedback_request["startIndex"] = i * page_size
+            feedback_response = self._send(endpoint, "POST", feedback_request).json()
+            feedback.extend(feedback_response["feedback"])
         return feedback
 
     def _send(self, endpoint, method, data):
@@ -146,7 +161,10 @@ class PandoraClient:
                 "username": username,
                 "password": password
             })
-            auth_token = login_response.json()["authToken"]
+            try:
+                auth_token = login_response.json()["authToken"]
+            except KeyError:
+                raise AuthorizationError()
             auth_header = {auth_token_header_name: auth_token}
             self.headers.update(auth_header)
     # End Authentication

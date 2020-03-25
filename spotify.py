@@ -1,6 +1,7 @@
 """All things related to Spotify"""
 import json
 import re
+import string
 import webbrowser
 
 import requests
@@ -40,21 +41,28 @@ class SpotifyClient:
                 should have fields "name", "album", and "artist", all of type str.
         """
 
-        playlist_id = self.create_playlist(group["name"])
+        playlist_name = group["name"]
+        playlist_id = self.create_playlist(playlist_name)
+        playlist = {"name": playlist_name, "id": playlist_id}
         for song in group["songs"]:
-            self.import_song(song, playlist_id)
+            self.import_song(song, playlist)
 
-    def import_song(self, song, playlist_id):
+    def import_song(self, song, playlist):
         """Imports a song into an existing playlist.
 
         Args:
             song (dict): A dict representing a song. The dict should have fields "name", "album",
                 and "artist", all of type str.
-            playlist_id (str): A Spotify ID for a playlist.
+            playlist (dict): A dict representing a playlist. The dict should have fields "id"
+                (Spotify ID) and "name".
         """
 
-        song_uri = self.find_song_uri(song)
-        self.add_song_to_playlist(song_uri, playlist_id)
+        try:
+            song_uri = self.find_song_uri(song)
+        except SongNotFoundError as e:
+            print(f"could not find song {song} to add to playlist '{playlist['name']}'")
+        else:
+            self.add_song_to_playlist(song_uri, playlist["id"])
 
     def add_song_to_playlist(self, song_uri, playlist_id):
         """Adds a song to a playlist.
@@ -112,9 +120,12 @@ class SpotifyClient:
         """
 
         try:
-            tracks = self.search_song(song["name"], artist=song["artist"])
-        except SongNotFoundError:
             tracks = self.search_song(song["name"], album=song["album"], artist=song["artist"])
+        except SongNotFoundError:
+            try:
+                tracks = self.search_song(song["name"], artist=song["artist"])
+            except SongNotFoundError:
+                tracks = self.search_song(song["name"])
 
         result = tracks[0]
         uri = result["uri"]
@@ -160,11 +171,11 @@ class SpotifyClient:
         """
 
         endpoint = "/search"
-        query = f"track:{name}"
+        query = f"track:{self._strip_punctuation(name)}"
         if artist:
-            query += f" artist:{artist}"
+            query += f" artist:{self._strip_punctuation(artist)}"
         if album:
-            query += f" album:{album}"
+            query += f" album:{self._strip_punctuation(album)}"
         response = self._send(endpoint, "GET", params={"q": query, "type": "track"})
         tracks = response.json()["tracks"]
         if tracks["total"] == 0:
@@ -209,6 +220,11 @@ class SpotifyClient:
             )
         else:
             raise ValueError(f"supported methods are GET,POST but given {method}")
+
+    # Begin Utility
+    def _strip_punctuation(self, s):
+        return s.translate(str.maketrans('', '', string.punctuation))
+    # End Utility
 
     # Begin Authentication
     CLIENT_ID = "8d620a84255e4806b1bbed7df287cdd7"

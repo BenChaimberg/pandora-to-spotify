@@ -1,5 +1,6 @@
 certifi==2019.11.28
 chardet==3.0.4
+configparser==4.0.2
 entrypoints==0.3
 flake8==3.7.9
 idna==2.9
