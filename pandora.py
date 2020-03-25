@@ -1,5 +1,9 @@
 """All things related to Pandora"""
+import math
 import requests
+
+class AuthorizationError(Exception):
+    """Exception raised when request fails due to lack of authorization."""
 
 
 class PandoraClient:
@@ -132,7 +136,10 @@ class PandoraClient:
                 "username": username,
                 "password": password
             })
-            auth_token = login_response.json()["authToken"]
+            try:
+                auth_token = login_response.json()["authToken"]
+            except KeyError:
+                raise AuthorizationError()
             auth_header = {auth_token_header_name: auth_token}
             self.headers.update(auth_header)
     # End Authentication
